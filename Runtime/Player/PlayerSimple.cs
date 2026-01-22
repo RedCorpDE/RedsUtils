@@ -1,7 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-namespace RedsUtils
+namespace RedsUtils.Player
 {
     [AddComponentMenu("Utilities/Player/Simple Player")]
     public class PlayerSimple : SingletonPersistent<PlayerSimple>
