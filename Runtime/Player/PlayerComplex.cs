@@ -1,24 +1,16 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using RedsUtils.Player.MovementSystem;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace RedsUtils.Player
+namespace RedsUtils.Player.MovementSystem
 {
-    [RequireComponent(typeof(CharacterController))]
+    
     [RequireComponent(typeof(PlayerInput))]
-    [AddComponentMenu("Utilities/Player/Player Complex")]
     public sealed class PlayerComplex : PlayerSimple
     {
-
-        [Header("Config")]
         [SerializeField] private LocomotionSet locomotionSet;
-
-        [Header("Refs")]
-        [SerializeField] private CharacterController controller;
+        [SerializeField] private CharacterController characterController;
         [SerializeField] private PlayerInput input;
 
         private readonly List<(LocomotionSet.Entry entry, LocomotionRuntime runtime)> _runtimes = new();
@@ -26,20 +18,17 @@ namespace RedsUtils.Player
 
         private void Awake()
         {
-
-            _ctx = new PlayerContext(gameObject, controller, mainCamera, input);
+            
+            _ctx = new PlayerContext(gameObject, characterController, mainCamera, input);
 
             BuildRuntimes();
-            
         }
 
         private void OnEnable()
         {
             foreach (var pair in _runtimes)
-            {
                 if (pair.entry.enabledByDefault)
                     pair.runtime.Enable();
-            }
         }
 
         private void OnDisable()
@@ -51,8 +40,13 @@ namespace RedsUtils.Player
         private void Update()
         {
             float dt = Time.deltaTime;
+
+            _ctx.Motor.BeginFrame();
+
             foreach (var pair in _runtimes)
                 pair.runtime.Tick(dt);
+
+            _ctx.Motor.Apply(dt);
         }
 
         private void FixedUpdate()
@@ -75,6 +69,5 @@ namespace RedsUtils.Player
                 _runtimes.Add((entry, runtime));
             }
         }
-        
     }
 }

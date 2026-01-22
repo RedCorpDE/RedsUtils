@@ -1,15 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace RedsUtils.Player.MovementSystem
+namespace RedsUtils.Player.MovementSystem.Modules
 {
-    [CreateAssetMenu(menuName = "Utilities/Player/Locomotion - Movement")]
+    [CreateAssetMenu(menuName = "RedsUtils/Player/Locomotion/Move", fileName = "LM_Move")]
     public sealed class LocomotionModuleMovement : LocomotionModuleBase
     {
+        [Header("Input")]
+        public InputActionReference move; // Vector2
 
-        [Header("Input")] public InputActionReference move; // expected Vector2
+        [Header("Space")]
+        [Tooltip("If true: forward/right from camera. If false: from character.")]
+        public bool cameraRelative = true;
 
-        [Header("Tuning")] public float speed = 5.5f;
+        [Header("Tuning")]
+        public float speed = 5.5f;
         public float rotationSharpness = 18f;
 
         public override LocomotionRuntime CreateRuntime(PlayerContext context)
@@ -19,9 +24,7 @@ namespace RedsUtils.Player.MovementSystem
         {
             private readonly LocomotionModuleMovement _def;
             private InputAction _moveAction;
-
             private Vector2 _move;
-            private Vector3 _planarVelocity;
 
             public Runtime(PlayerContext ctx, LocomotionModuleMovement def) : base(ctx) => _def = def;
 
@@ -32,9 +35,6 @@ namespace RedsUtils.Player.MovementSystem
 
                 _moveAction.performed += OnMove;
                 _moveAction.canceled += OnMove;
-                // Usually you do NOT call Enable() here if PlayerInput handles it via action maps.
-                // Only do it if you are not using PlayerInput to enable maps.
-                // _moveAction.Enable();
             }
 
             public override void Disable()
@@ -43,27 +43,18 @@ namespace RedsUtils.Player.MovementSystem
 
                 _moveAction.performed -= OnMove;
                 _moveAction.canceled -= OnMove;
-                // _moveAction.Disable();
                 _moveAction = null;
             }
 
             public override void Tick(float dt)
             {
-                // Convert input to camera-relative move
-                var cam = Ctx.MainCamera != null ? Ctx.MainCamera.transform : null;
-                Vector3 forward =
-                    cam ? Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized : Ctx.Transform.forward;
-                Vector3 right = cam ? Vector3.ProjectOnPlane(cam.right, Vector3.up).normalized : Ctx.Transform.right;
+                DirectionSpace.GetPlanarBasis(Ctx.Transform, Ctx.MainCamera, _def.cameraRelative, out var forward, out var right);
 
-                Vector3 desired = (forward * _move.y + right * _move.x);
+                Vector3 desired = forward * _move.y + right * _move.x;
                 if (desired.sqrMagnitude > 1f) desired.Normalize();
 
-                _planarVelocity = desired * _def.speed;
+                Ctx.Motor.SetPlanarVelocity(desired * _def.speed);
 
-                // CharacterController.Move is typically done in Update (dt), unless you’re doing physics-based locomotion.
-                Ctx.CharacterController.Move(_planarVelocity * dt);
-
-                // Face move direction (optional)
                 if (desired.sqrMagnitude > 0.0001f)
                 {
                     var targetRot = Quaternion.LookRotation(desired, Vector3.up);
@@ -78,7 +69,6 @@ namespace RedsUtils.Player.MovementSystem
             {
                 _move = ctx.ReadValue<Vector2>();
             }
-
         }
     }
 }

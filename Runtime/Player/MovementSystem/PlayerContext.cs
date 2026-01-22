@@ -10,6 +10,7 @@ namespace RedsUtils.Player.MovementSystem
         public readonly CharacterController CharacterController;
         public readonly Camera MainCamera;
         public readonly PlayerInput PlayerInput;
+        public readonly LocomotionMotor Motor;
 
         public PlayerContext(
             GameObject go,
@@ -22,6 +23,7 @@ namespace RedsUtils.Player.MovementSystem
             CharacterController = characterController;
             MainCamera = mainCamera;
             PlayerInput = playerInput;
+            Motor = new LocomotionMotor(characterController);
         }
     }
 }
