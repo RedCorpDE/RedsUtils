@@ -10,7 +10,7 @@ namespace RedsUtils.Player
 {
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(PlayerInput))]
-    [AddComponentMenu("Utilities/Player/Simple Player")]
+    [AddComponentMenu("Utilities/Player/Player Complex")]
     public sealed class PlayerComplex : PlayerSimple
     {
 
@@ -19,18 +19,19 @@ namespace RedsUtils.Player
 
         [Header("Refs")]
         [SerializeField] private Camera mainCamera;
+        [SerializeField] private CharacterController controller;
+        [SerializeField] private PlayerInput input;
 
         private readonly List<(LocomotionSet.Entry entry, LocomotionRuntime runtime)> _runtimes = new();
         private PlayerContext _ctx;
 
         private void Awake()
         {
-            var cc = GetComponent<CharacterController>();
-            var pi = GetComponent<PlayerInput>();
 
-            _ctx = new PlayerContext(gameObject, cc, mainCamera, pi);
+            _ctx = new PlayerContext(gameObject, controller, mainCamera, input);
 
             BuildRuntimes();
+            
         }
 
         private void OnEnable()
