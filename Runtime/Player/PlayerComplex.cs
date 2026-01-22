@@ -18,7 +18,6 @@ namespace RedsUtils.Player
         [SerializeField] private LocomotionSet locomotionSet;
 
         [Header("Refs")]
-        [SerializeField] private Camera mainCamera;
         [SerializeField] private CharacterController controller;
         [SerializeField] private PlayerInput input;
 
